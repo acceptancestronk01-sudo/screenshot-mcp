@@ -1,0 +1,33 @@
+{
+  "name": "screenshot-mcp",
+  "version": "1.0.0",
+  "description": "x402 payment-protected Screenshot & PDF Generation API - Capture web pages as images or PDFs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mcp",
+    "x402",
+    "screenshot",
+    "pdf",
+    "api",
+    "web-capture",
+    "puppeteer",
+    "bazaar"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^21.6.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
