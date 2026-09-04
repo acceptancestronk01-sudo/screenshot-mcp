@@ -1,14 +1,7 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { mkdirSync, existsSync } from 'fs';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -22,25 +15,6 @@ const PAYMENT_CONFIG = {
   chainId: 'eip155:8453',
   payTo: '0xf081ee84c0d85278a6242bc265f0b312021ebeb1'
 };
-
-// Ensure output directories exist
-const screenshotsDir = join(__dirname, 'screenshots');
-const pdfsDir = join(__dirname, 'pdfs');
-if (!existsSync(screenshotsDir)) mkdirSync(screenshotsDir, { recursive: true });
-if (!existsSync(pdfsDir)) mkdirSync(pdfsDir, { recursive: true });
-
-// Browser instance (reused for performance)
-let browser = null;
-
-async function getBrowser() {
-  if (!browser) {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
-  }
-  return browser;
-}
 
 // Root landing page
 app.get('/', (req, res) => {
@@ -378,34 +352,22 @@ app.get('/api/screenshot', async (req, res) => {
     const viewportWidth = Math.min(Math.max(parseInt(width) || 1920, 320), 3840);
     const viewportHeight = Math.min(Math.max(parseInt(height) || 1080, 240), 2160);
 
-    // For Vercel deployment (stateless), use mock screenshot
-    // In production with persistent storage, use real Puppeteer
-    const mockScreenshot = {
+    // For Vercel deployment (stateless), return capture request details
+    // In production with Puppeteer infrastructure, this would be actual PNG binary data
+    const captureRequest = {
       format: 'image/png',
       url: url,
       dimensions: {
         width: viewportWidth,
         height: viewportHeight
       },
-      capturedAt: new Date().toISOString(),
-      size: 125000,
-      note: 'Mock screenshot data - in production, this would be actual PNG binary data'
+      requestedAt: new Date().toISOString(),
+      estimatedSize: 125000,
+      status: 'Capture request received - mock mode (Vercel compatible)',
+      note: 'This service is configured for Vercel. For actual screenshots, deploy with Puppeteer on persistent infrastructure.'
     };
 
-    res.json(mockScreenshot);
-
-    // Real implementation (commented out for Vercel compatibility):
-    /*
-    const browser = await getBrowser();
-    const page = await browser.newPage();
-    await page.setViewport({ width: viewportWidth, height: viewportHeight });
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    const screenshot = await page.screenshot({ type: 'png' });
-    await page.close();
-
-    res.set('Content-Type', 'image/png');
-    res.send(screenshot);
-    */
+    res.json(captureRequest);
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
@@ -490,29 +452,18 @@ app.get('/api/pdf', async (req, res) => {
     // Validate format
     const pageFormat = ['A4', 'Letter'].includes(format) ? format : 'A4';
 
-    // For Vercel deployment (stateless), use mock PDF
-    const mockPdf = {
+    // For Vercel deployment (stateless), return PDF generation request details
+    const pdfRequest = {
       format: 'application/pdf',
       url: url,
       pageFormat: pageFormat,
-      generatedAt: new Date().toISOString(),
-      size: 245000,
-      note: 'Mock PDF data - in production, this would be actual PDF binary data'
+      requestedAt: new Date().toISOString(),
+      estimatedSize: 245000,
+      status: 'PDF generation request received - mock mode (Vercel compatible)',
+      note: 'This service is configured for Vercel. For actual PDFs, deploy with Puppeteer on persistent infrastructure.'
     };
 
-    res.json(mockPdf);
-
-    // Real implementation (commented out for Vercel compatibility):
-    /*
-    const browser = await getBrowser();
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    const pdf = await page.pdf({ format: pageFormat, printBackground: true });
-    await page.close();
-
-    res.set('Content-Type', 'application/pdf');
-    res.send(pdf);
-    */
+    res.json(pdfRequest);
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
