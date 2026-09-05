@@ -12,6 +12,7 @@
       "dest": "index.js"
     }
   ],
+  "framework": null,
   "env": {
     "NODE_ENV": "production"
   }
