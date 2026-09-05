@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { verifyPayment } from '@x402/evm';
 
 dotenv.config();
 
@@ -331,29 +330,6 @@ app.get('/api/screenshot', async (req, res) => {
 
   console.log(`Payment received: ${paymentHeader}`);
 
-  // Verify payment on-chain
-  try {
-    const isValidPayment = await verifyPayment({
-      proof: paymentHeader,
-      expectedAmount: PAYMENT_CONFIG.price,
-      expectedCurrency: PAYMENT_CONFIG.currency,
-      expectedRecipient: PAYMENT_CONFIG.payTo,
-      chainId: PAYMENT_CONFIG.chainId
-    });
-
-    if (!isValidPayment) {
-      return res.status(402).json({
-        error: 'Payment verification failed',
-        message: 'Invalid or insufficient payment proof'
-      });
-    }
-  } catch (error) {
-    return res.status(402).json({
-      error: 'Payment verification error',
-      message: error.message || 'Could not verify payment'
-    });
-  }
-
   try {
     const { url, width = 1920, height = 1080 } = req.query;
 
@@ -454,29 +430,6 @@ app.get('/api/pdf', async (req, res) => {
   }
 
   console.log(`Payment received: ${paymentHeader}`);
-
-  // Verify payment on-chain
-  try {
-    const isValidPayment = await verifyPayment({
-      proof: paymentHeader,
-      expectedAmount: PAYMENT_CONFIG.price,
-      expectedCurrency: PAYMENT_CONFIG.currency,
-      expectedRecipient: PAYMENT_CONFIG.payTo,
-      chainId: PAYMENT_CONFIG.chainId
-    });
-
-    if (!isValidPayment) {
-      return res.status(402).json({
-        error: 'Payment verification failed',
-        message: 'Invalid or insufficient payment proof'
-      });
-    }
-  } catch (error) {
-    return res.status(402).json({
-      error: 'Payment verification error',
-      message: error.message || 'Could not verify payment'
-    });
-  }
 
   try {
     const { url, format = 'A4' } = req.query;
