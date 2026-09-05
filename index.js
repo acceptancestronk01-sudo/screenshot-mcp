@@ -1,4 +1,6 @@
 import express from 'express';
+import { createPaymentMiddleware } from './payment-verification.js';
+
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,6 +17,10 @@ const PAYMENT_CONFIG = {
   chainId: 'eip155:8453',
   payTo: '0xf081ee84c0d85278a6242bc265f0b312021ebeb1'
 };
+
+// X402 Payment Verification Middleware
+const verifyPayment = createPaymentMiddleware(PAYMENT_CONFIG);
+
 
 // Root landing page
 app.get('/', (req, res) => {
@@ -266,7 +272,7 @@ app.get('/.well-known/x402', (req, res) => {
 });
 
 // Protected screenshot endpoint
-app.get('/api/screenshot', async (req, res) => {
+app.get('/api/screenshot', verifyPayment, async (req, res) => {
   const paymentHeader = req.headers['x-payment-signature'];
 
   if (!paymentHeader) {
@@ -319,7 +325,7 @@ app.get('/api/screenshot', async (req, res) => {
       payment: {
         scheme: 'exact',
         network: PAYMENT_CONFIG.chainId,
-        price: `$${PAYMENT_CONFIG.price}`,
+        price: '$' + PAYMENT_CONFIG.price,
         currency: PAYMENT_CONFIG.currency,
         payTo: PAYMENT_CONFIG.payTo,
         description: 'Capture webpage screenshot'
@@ -377,7 +383,7 @@ app.get('/api/screenshot', async (req, res) => {
 });
 
 // Protected PDF generation endpoint
-app.get('/api/pdf', async (req, res) => {
+app.get('/api/pdf', verifyPayment, async (req, res) => {
   const paymentHeader = req.headers['x-payment-signature'];
 
   if (!paymentHeader) {
@@ -420,7 +426,7 @@ app.get('/api/pdf', async (req, res) => {
       payment: {
         scheme: 'exact',
         network: PAYMENT_CONFIG.chainId,
-        price: `$${PAYMENT_CONFIG.price}`,
+        price: '$' + PAYMENT_CONFIG.price,
         currency: PAYMENT_CONFIG.currency,
         payTo: PAYMENT_CONFIG.payTo,
         description: 'Generate PDF from webpage'
